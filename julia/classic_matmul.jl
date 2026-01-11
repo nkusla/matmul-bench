@@ -14,9 +14,20 @@ function classic_matmul(A::Matrix{T}, B::Matrix{T}) where T
 
   C = zeros(T, m, p)
 
-  for i in 1:m
-    for j in 1:p
-      for k in 1:n
+  # Row major computation
+  # for i in 1:m
+  #   for j in 1:p
+  #     for k in 1:n
+  #       C[i, j] += A[i, k] * B[k, j]
+  #     end
+  #   end
+  # end
+
+  # Column major computation (for better cache performance)
+  # Julia uses column-major order by default for storing matrices
+  for j in 1:p      # column of C
+    for k in 1:n    # accumulation
+      for i in 1:m  # row of C
         C[i, j] += A[i, k] * B[k, j]
       end
     end
