@@ -25,7 +25,8 @@ function main()
     256,   # Medium
     512,   # Medium-large
     1024,  # Large
-    # 2048,  # Very large
+    2048,  # Very large
+    4096   # Extra large
   ]
 
   println("Testing sizes: $sizes")

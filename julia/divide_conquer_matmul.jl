@@ -1,5 +1,7 @@
 using Base.Threads
 
+include("classic_matmul.jl")
+
 """
     divide_conquer_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
 
@@ -14,10 +16,10 @@ Arguments:
 """
 function divide_conquer_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
   m, n = size(A)
-  n2, p = size(B)
+  q, p = size(B)
 
-  if n != n2
-    throw(DimensionMismatch("Matrix dimensions must agree: A is $(m)x$(n), B is $(n2)x$(p)"))
+  if n != q
+    throw(DimensionMismatch("Matrix dimensions must agree: A is $(m)x$(n), B is $(q)x$(p)"))
   end
 
   return _divide_conquer_recursive(A, B, threshold, parallel)
@@ -30,7 +32,7 @@ Internal recursive function for divide and conquer multiplication.
 """
 function _divide_conquer_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, parallel::Bool) where T
   m, n = size(A)
-  n2, p = size(B)
+  q, p = size(B)
 
   # Base case: use our own classic implementation for fair comparison
   if m <= threshold || n <= threshold || p <= threshold

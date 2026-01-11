@@ -6,10 +6,10 @@ Time complexity: O(n³)
 """
 function classic_matmul(A::Matrix{T}, B::Matrix{T}) where T
   m, n = size(A)
-  n2, p = size(B)
+  q, p = size(B)
 
-  if n != n2
-    throw(DimensionMismatch("Matrix dimensions must agree: A is $(m)x$(n), B is $(n2)x$(p)"))
+  if n != q
+    throw(DimensionMismatch("Matrix dimensions must agree: A is $(m)x$(n), B is $(q)x$(p)"))
   end
 
   C = zeros(T, m, p)
