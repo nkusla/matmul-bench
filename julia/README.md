@@ -39,12 +39,12 @@ julia -e 'using Pkg; Pkg.add(["BenchmarkTools"])'
 Execute the benchmark suite with multiple threads:
 ```bash
 cd julia
-julia --project=. -t 4 main.jl
+julia --project=. -t 8 -O3 main.jl
 ```
 
 Or use all available cores:
 ```bash
-julia --project=. -t auto main.jl
+julia --project=. -t auto -O3 main.jl
 ```
 
 ## Benchmark Output
