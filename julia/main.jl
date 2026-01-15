@@ -42,7 +42,7 @@ function main()
 
   # Save results to CSV
   timestamp = floor(Int, time())
-  arch = Sys.ARCH
+  arch = lowercase(string(Sys.ARCH))
   os = Sys.KERNEL
   nthreads = Threads.nthreads()
   filename = "../results/julia_benchmark_$(os)_$(arch)_$(nthreads)t_$(timestamp).csv"
