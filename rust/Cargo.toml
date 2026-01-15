@@ -16,6 +16,7 @@ path = "src/test.rs"
 [dependencies]
 rayon = "1.10"
 rand = "0.8"
+stats_alloc = "0.1"
 
 [profile.release]
 opt-level = 3

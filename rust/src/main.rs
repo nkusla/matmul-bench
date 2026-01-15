@@ -5,6 +5,11 @@ mod matrix;
 
 use benchmark::{print_results_table, run_benchmarks, save_results_csv};
 use std::time::Instant;
+use stats_alloc::{StatsAlloc, INSTRUMENTED_SYSTEM};
+use std::alloc::System;
+
+#[global_allocator]
+static GLOBAL: &StatsAlloc<System> = &INSTRUMENTED_SYSTEM;
 
 /// Main function to run matrix multiplication benchmarks
 fn main() {
