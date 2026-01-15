@@ -1,11 +1,14 @@
 #!/usr/bin/env julia
 
 # Load implementations
-include("classic_matmul.jl")
+include("iterative_matmul.jl")
 include("divide_conquer_matmul.jl")
+include("strassen_matmul.jl")
 
 # Include benchmark module
 include("benchmark.jl")
+
+using InteractiveUtils: @code_llvm
 
 """
 Main script to run matrix multiplication benchmarks.
@@ -26,7 +29,7 @@ function main()
     512,   # Medium-large
     1024,  # Large
     2048,  # Very large
-    #4096   # Extra large
+    # 4096   # Extra large
   ]
 
   println("Testing sizes: $sizes")

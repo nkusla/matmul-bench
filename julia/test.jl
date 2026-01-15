@@ -2,8 +2,9 @@
 using Test
 using LinearAlgebra
 
-include("classic_matmul.jl")
+include("iterative_matmul.jl")
 include("divide_conquer_matmul.jl")
+include("strassen_matmul.jl")
 
 println("Running correctness tests...")
 println("="^50)
@@ -21,17 +22,23 @@ for n in sizes_to_test
   # Compute reference result
   C_reference = A * B
 
-  # Test classic multiplication
-  C_classic = classic_matmul(A, B)
-  error_classic = norm(C_reference - C_classic)
-  @test error_classic < 1e-10
-  println("  ✓ Classic: error = $(error_classic)")
+  # Test iterative multiplication
+  C_iterative = iterative_matmul(A, B)
+  error_iterative = norm(C_reference - C_iterative)
+  @test error_iterative < 1e-10
+  println("  ✓ Iterative: error = $(error_iterative)")
 
   # Test divide-and-conquer
   C_dc_par = divide_conquer_matmul(A, B; threshold=4, parallel=true)
   error_dc_par = norm(C_reference - C_dc_par)
   @test error_dc_par < 1e-10
   println("  ✓ Divide-Conquer: error = $(error_dc_par)")
+
+  # Test Strassen
+  C_strassen = strassen_matmul(A, B; threshold=4, parallel=true)
+  error_strassen = norm(C_reference - C_strassen)
+  @test error_strassen < 1e-10
+  println("  ✓ Strassen: error = $(error_strassen)")
 end
 
 println("\n" * "="^50)

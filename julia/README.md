@@ -4,7 +4,7 @@ This directory contains Julia implementations of matrix multiplication algorithm
 
 ## Algorithms Implemented
 
-1. **Classic Matrix Multiplication** (`classic_matmul.jl`)
+1. **Iterative Matrix Multiplication** (`iterative_matmul.jl`)
    - Standard iterative O(n³) algorithm
    - Three nested loops implementation
 
@@ -16,7 +16,7 @@ This directory contains Julia implementations of matrix multiplication algorithm
 
 ## Files
 
-- `classic_matmul.jl` - Classic iterative implementation
+- `iterative_matmul.jl` - Iterative implementation
 - `divide_conquer_matmul.jl` - Divide and conquer with parallelization
 - `benchmark.jl` - Benchmarking framework using BenchmarkTools
 - `main.jl` - Main script to execute benchmarks
@@ -51,15 +51,9 @@ julia --project=. -t auto -O3 main.jl
 
 The benchmark will:
 - Test multiple matrix sizes (64x64 up to 1024x1024 by default)
-- Measure execution time and GFLOPS for each algorithm
+- Measure execution time for each algorithm
 - Compare against Julia's built-in optimized multiplication
 - Save results to a CSV file with timestamp
-
-## Performance Metrics
-
-- **Time**: Median execution time in seconds
-- **GFLOPS**: Giga Floating Point Operations Per Second (higher is better)
-- Calculated as: 2n³ operations / time / 10⁹
 
 ## Customization
 

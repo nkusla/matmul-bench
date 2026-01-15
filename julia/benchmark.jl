@@ -6,7 +6,7 @@ using Printf
 		benchmark_algorithm(algorithm_fn, name, A, B; kwargs...)
 
 Benchmark a single algorithm with given matrices.
-Returns the median time in seconds.
+Returns the mean time in seconds.
 """
 function benchmark_algorithm(algorithm_fn, name::String, A::Matrix{T}, B::Matrix{T}; kwargs...) where T
   println("  Benchmarking $name...")
@@ -14,9 +14,10 @@ function benchmark_algorithm(algorithm_fn, name::String, A::Matrix{T}, B::Matrix
   # Actual benchmark
   trial = @benchmark $algorithm_fn($A, $B; $(kwargs)...) samples = 10 evals = 1
 
-  median_time = median(trial.times) / 1e6  # Convert to milliseconds
+  mean_time = mean(trial.times) / 1e6  # Convert to milliseconds
+  mean_memory = mean(trial.memory) / 1e6  # Convert to megabytes
 
-  return median_time
+  return (mean_time, mean_memory)
 end
 
 """
@@ -27,8 +28,8 @@ Structure to store benchmark results.
 struct BenchmarkResult
   size::Int
   algorithm::String
-  time::Float64  # in milliseconds
-  gflops::Float64  # Giga FLOPS
+  time::Float64         # in milliseconds
+  memory::Float64       # in megabytes
 end
 
 """
@@ -51,36 +52,44 @@ function run_benchmarks(sizes::Vector{Int})
     A = rand(Float64, n, n)
     B = rand(Float64, n, n)
 
-    # Calculate FLOPS for this size (2n³ for matrix multiplication)
-    flops = 2.0 * n^3
-
-    # Benchmark classic algorithm
+    # Benchmark iterative algorithm
     try
-      time_classic = benchmark_algorithm(classic_matmul, "Classic", A, B)
-      gflops_classic = flops / (time_classic / 1e3) / 1e9  # Convert ms to s for GFLOPS
-      push!(results, BenchmarkResult(n, "Classic", time_classic, gflops_classic))
-      @printf("    Time: %.2f ms, Performance: %.2f GFLOPS\n", time_classic, gflops_classic)
+      time_iter, mem_iter = benchmark_algorithm(iterative_matmul, "Iterative", A, B)
+      push!(results, BenchmarkResult(n, "Iterative", time_iter, mem_iter))
+      @printf("    Time: %.2f ms, Memory: %.2f MB\n",
+              time_iter, mem_iter)
     catch e
       println("    Error: $e")
     end
 
     # Benchmark divide-and-conquer (always parallel)
     try
-      time_dc = benchmark_algorithm(divide_conquer_matmul, "Divide-Conquer",
+      time_dc, mem_dc = benchmark_algorithm(divide_conquer_matmul, "Divide-Conquer",
         A, B; threshold=64, parallel=true)
-      gflops_dc = flops / (time_dc / 1e3) / 1e9  # Convert ms to s for GFLOPS
-      push!(results, BenchmarkResult(n, "Divide-Conquer", time_dc, gflops_dc))
-      @printf("    Time: %.2f ms, Performance: %.2f GFLOPS\n", time_dc, gflops_dc)
+      push!(results, BenchmarkResult(n, "Divide-Conquer", time_dc, mem_dc))
+      @printf("    Time: %.2f ms, Memory: %.2f MB\n",
+              time_dc, mem_dc)
+    catch e
+      println("    Error: $e")
+    end
+
+    # Benchmark Strassen (always parallel)
+    try
+      time_strassen, mem_strassen = benchmark_algorithm(strassen_matmul, "Strassen",
+        A, B; threshold=64, parallel=true)
+      push!(results, BenchmarkResult(n, "Strassen", time_strassen, mem_strassen))
+      @printf("    Time: %.2f ms, Memory: %.2f MB\n",
+              time_strassen, mem_strassen)
     catch e
       println("    Error: $e")
     end
 
     # Benchmark Julia's built-in (for comparison)
     try
-      time_builtin = benchmark_algorithm((A, B) -> A * B, "Julia Built-in", A, B)
-      gflops_builtin = flops / (time_builtin / 1e3) / 1e9  # Convert ms to s for GFLOPS
-      push!(results, BenchmarkResult(n, "Julia-Builtin", time_builtin, gflops_builtin))
-      @printf("    Time: %.2f ms, Performance: %.2f GFLOPS\n", time_builtin, gflops_builtin)
+      time_builtin, mem_builtin = benchmark_algorithm((A, B) -> A * B, "Julia Built-in", A, B)
+      push!(results, BenchmarkResult(n, "Julia-Builtin", time_builtin, mem_builtin))
+      @printf("    Time: %.2f ms, Memory: %.2f MB\n",
+              time_builtin, mem_builtin)
     catch e
       println("    Error: $e")
     end
@@ -98,12 +107,12 @@ function print_results_table(results::Vector{BenchmarkResult})
   println("\n" * "="^80)
   println("BENCHMARK RESULTS SUMMARY")
   println("="^80)
-  @printf("%-10s %-25s %12s %12s\n", "Size", "Algorithm", "Time (ms)", "GFLOPS")
+  @printf("%-10s %-25s %12s %15s\n", "Size", "Algorithm", "Time (ms)", "Memory (MB)")
   println("-"^80)
 
   for result in results
-    @printf("%-10d %-25s %12.2f %12.2f\n",
-      result.size, result.algorithm, result.time, result.gflops)
+    @printf("%-10d %-25s %12.2f %15.2f\n",
+      result.size, result.algorithm, result.time, result.memory)
   end
 
   println("="^80)
@@ -116,9 +125,9 @@ Save benchmark results to a CSV file.
 """
 function save_results_csv(results::Vector{BenchmarkResult}, filename::String)
   open(filename, "w") do io
-    println(io, "size,algorithm,time_ms,gflops")
+    println(io, "size,algorithm,time_ms,memory_mb")
     for result in results
-      println(io, "$(result.size),$(result.algorithm),$(result.time),$(result.gflops)")
+      println(io, "$(result.size),$(result.algorithm),$(result.time),$(result.memory)")
     end
   end
   println("\nResults saved to: $filename")

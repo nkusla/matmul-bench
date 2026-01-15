@@ -1,6 +1,6 @@
 using Base.Threads
 
-include("classic_matmul.jl")
+include("iterative_matmul.jl")
 
 """
     divide_conquer_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
@@ -34,9 +34,9 @@ function _divide_conquer_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, p
   m, n = size(A)
   q, p = size(B)
 
-  # Base case: use our own classic implementation for fair comparison
+  # Base case: use our own iterative implementation for fair comparison
   if m <= threshold || n <= threshold || p <= threshold
-    return classic_matmul(A, B)
+    return iterative_matmul(A, B)
   end
 
   # Ensure matrices can be divided evenly (pad if necessary)
