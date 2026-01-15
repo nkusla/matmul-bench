@@ -3,7 +3,7 @@ using Base.Threads
 include("iterative_matmul.jl")
 
 """
-    strassen_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
+    strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
 
 Strassen's matrix multiplication algorithm with optional parallelization.
 Recursively divides matrices into quadrants and computes 7 products instead of 8,
@@ -14,7 +14,7 @@ Arguments:
 - threshold: Minimum size to switch to standard multiplication (default: 64)
 - parallel: Whether to use parallel execution (default: true)
 """
-function strassen_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
+function strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -30,7 +30,7 @@ end
 
 Internal recursive function for Strassen multiplication.
 """
-function _strassen_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, parallel::Bool) where T
+function _strassen_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, threshold::Int, parallel::Bool) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -67,16 +67,16 @@ function _strassen_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, paralle
   p_half = p ÷ 2
 
   # Divide A into quadrants
-  A11 = A[1:m_half, 1:n_half]
-  A12 = A[1:m_half, n_half+1:n]
-  A21 = A[m_half+1:m, 1:n_half]
-  A22 = A[m_half+1:m, n_half+1:n]
+  A11 = @view A[1:m_half, 1:n_half]
+  A12 = @view A[1:m_half, n_half+1:n]
+  A21 = @view A[m_half+1:m, 1:n_half]
+  A22 = @view A[m_half+1:m, n_half+1:n]
 
   # Divide B into quadrants
-  B11 = B[1:n_half, 1:p_half]
-  B12 = B[1:n_half, p_half+1:p]
-  B21 = B[n_half+1:n, 1:p_half]
-  B22 = B[n_half+1:n, p_half+1:p]
+  B11 = @view B[1:n_half, 1:p_half]
+  B12 = @view B[1:n_half, p_half+1:p]
+  B21 = @view B[n_half+1:n, 1:p_half]
+  B22 = @view B[n_half+1:n, p_half+1:p]
 
   # Strassen's algorithm: compute 7 products instead of 8
   # M1 = (A11 + A22) * (B11 + B22)

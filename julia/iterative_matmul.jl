@@ -1,10 +1,10 @@
 """
-    iterative_matmul(A::Matrix{T}, B::Matrix{T}) where T
+    iterative_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}) where T
 
 Standard iterative matrix multiplication algorithm.
 Time complexity: O(n³)
 """
-function iterative_matmul(A::Matrix{T}, B::Matrix{T}) where T
+function iterative_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}) where T
   m, n = size(A)
   q, p = size(B)
 

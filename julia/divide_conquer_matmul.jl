@@ -3,7 +3,7 @@ using Base.Threads
 include("iterative_matmul.jl")
 
 """
-    divide_conquer_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
+    divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
 
 Divide and conquer matrix multiplication algorithm with optional parallelization.
 Recursively divides matrices into quadrants until reaching the threshold,
@@ -14,7 +14,7 @@ Arguments:
 - threshold: Minimum size to switch to standard multiplication (default: 64)
 - parallel: Whether to use parallel execution (default: true)
 """
-function divide_conquer_matmul(A::Matrix{T}, B::Matrix{T}; threshold::Int=64, parallel::Bool=true) where T
+function divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -30,7 +30,7 @@ end
 
 Internal recursive function for divide and conquer multiplication.
 """
-function _divide_conquer_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, parallel::Bool) where T
+function _divide_conquer_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, threshold::Int, parallel::Bool) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -45,16 +45,16 @@ function _divide_conquer_recursive(A::Matrix{T}, B::Matrix{T}, threshold::Int, p
   p_half = p ÷ 2
 
   # Divide A into quadrants
-  A11 = A[1:m_half, 1:n_half]
-  A12 = A[1:m_half, n_half+1:n]
-  A21 = A[m_half+1:m, 1:n_half]
-  A22 = A[m_half+1:m, n_half+1:n]
+  A11 = @view A[1:m_half, 1:n_half]
+  A12 = @view A[1:m_half, n_half+1:n]
+  A21 = @view A[m_half+1:m, 1:n_half]
+  A22 = @view A[m_half+1:m, n_half+1:n]
 
   # Divide B into quadrants
-  B11 = B[1:n_half, 1:p_half]
-  B12 = B[1:n_half, p_half+1:p]
-  B21 = B[n_half+1:n, 1:p_half]
-  B22 = B[n_half+1:n, p_half+1:p]
+  B11 = @view B[1:n_half, 1:p_half]
+  B12 = @view B[1:n_half, p_half+1:p]
+  B21 = @view B[n_half+1:n, 1:p_half]
+  B22 = @view B[n_half+1:n, p_half+1:p]
 
   # Compute the 8 products needed (C = A * B)
   # C11 = A11*B11 + A12*B21

@@ -51,7 +51,7 @@ julia --project=. -t auto -O3 main.jl
 
 The benchmark will:
 - Test multiple matrix sizes (64x64 up to 1024x1024 by default)
-- Measure execution time for each algorithm
+- Measure execution time and memory usage for each algorithm
 - Compare against Julia's built-in optimized multiplication
 - Save results to a CSV file with timestamp
 
