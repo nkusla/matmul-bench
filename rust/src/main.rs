@@ -1,5 +1,5 @@
 mod benchmark;
-mod classic_matmul;
+mod iterative_matmul;
 mod divide_conquer_matmul;
 mod matrix;
 

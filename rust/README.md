@@ -4,7 +4,7 @@ This directory contains Rust implementations of matrix multiplication algorithms
 
 ## Algorithms Implemented
 
-1. **Classic Matrix Multiplication** (`classic_matmul.rs`)
+1. **Iterative Matrix Multiplication** (`iterative_matmul.rs`)
    - Standard iterative O(n³) algorithm
    - Three nested loops implementation
 
@@ -16,7 +16,7 @@ This directory contains Rust implementations of matrix multiplication algorithms
 
 ## Files
 
-- `src/classic_matmul.rs` - Classic iterative implementation
+- `src/iterative_matmul.rs` - Iterative matrix multiplication implementation
 - `src/divide_conquer_matmul.rs` - Divide and conquer with parallelization
 - `src/benchmark.rs` - Benchmarking framework
 - `src/main.rs` - Main entry point to execute benchmarks
@@ -97,7 +97,7 @@ Edit `src/divide_conquer_matmul.rs` to:
 ## Comparison with Julia
 
 This Rust implementation mirrors the Julia version to enable fair performance comparisons:
-- Same algorithms (Classic and Divide-Conquer)
+- Same algorithms (Iterative and Divide-Conquer)
 - Same benchmarking methodology
 - Same output format (CSV with size, algorithm, time, GFLOPS)
 - Both use parallel execution for divide-and-conquer

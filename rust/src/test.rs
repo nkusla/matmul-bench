@@ -1,8 +1,8 @@
-mod classic_matmul;
+mod iterative_matmul;
 mod divide_conquer_matmul;
 mod matrix;
 
-use classic_matmul::classic_matmul;
+use iterative_matmul::iterative_matmul;
 use divide_conquer_matmul::divide_conquer_matmul;
 use matrix::Matrix;
 
@@ -59,14 +59,14 @@ fn main() {
 		// Compute reference result
 		let c_reference = reference_matmul(&a, &b);
 
-		// Test classic multiplication
-		let c_classic = classic_matmul(&a, &b);
-		let error_classic = matrix_error(&c_reference, &c_classic);
+		// Test iterative multiplication
+		let c_iterative = iterative_matmul(&a, &b);
+		let error_iterative = matrix_error(&c_reference, &c_iterative);
 		assert!(
-			error_classic < 1e-10,
-			"Classic multiplication error too large"
+			error_iterative < 1e-10,
+			"Iterative multiplication error too large"
 		);
-		println!("  ✓ Classic: error = {}", error_classic);
+		println!("  ✓ Iterative: error = {}", error_iterative);
 
 		// Test divide-and-conquer
 		let c_dc_par = divide_conquer_matmul(&a, &b, 4, true);

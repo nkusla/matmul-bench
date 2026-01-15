@@ -1,4 +1,4 @@
-use crate::classic_matmul::classic_matmul;
+use crate::iterative_matmul::iterative_matmul;
 use crate::matrix::Matrix;
 use rayon::prelude::*;
 
@@ -36,9 +36,9 @@ fn divide_conquer_recursive(a: &Matrix, b: &Matrix, threshold: usize, parallel: 
 	let n = a.cols;
 	let p = b.cols;
 
-	// Base case: use classic implementation for fair comparison
+	// Base case: use iterative implementation for fair comparison
 	if m <= threshold || n <= threshold || p <= threshold {
-		return classic_matmul(a, b);
+		return iterative_matmul(a, b);
 	}
 
 	// Divide matrices into quadrants

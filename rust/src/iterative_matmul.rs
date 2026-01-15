@@ -12,7 +12,7 @@ use crate::matrix::Matrix;
 ///
 /// # Panics
 /// Panics if matrix dimensions don't match (columns of A != rows of B)
-pub fn classic_matmul(a: &Matrix, b: &Matrix) -> Matrix {
+pub fn iterative_matmul(a: &Matrix, b: &Matrix) -> Matrix {
 	let m = a.rows;
 	let n = a.cols;
 	let q = b.rows;
@@ -27,11 +27,11 @@ pub fn classic_matmul(a: &Matrix, b: &Matrix) -> Matrix {
 
 	let mut c = Matrix::new(m, p);
 
-	// Row major computation (optimized for contiguous memory layout)
+	// Column major computation (optimized for contiguous memory layout)
 	// Access memory sequentially by iterating columns in the innermost loop
-	for i in 0..m {
+	for j in 0..p {
 		for k in 0..n {
-			for j in 0..p {
+			for i in 0..m {
 				c[(i, j)] += a[(i, k)] * b[(k, j)];
 			}
 		}

@@ -1,6 +1,7 @@
 use std::ops::{Index, IndexMut};
+use rand::Rng;
 
-/// Matrix stored in contiguous memory (row-major order)
+/// Matrix stored in contiguous memory (column-major order)
 #[derive(Clone)]
 pub struct Matrix {
 	pub data: Vec<f64>,
@@ -20,7 +21,6 @@ impl Matrix {
 
 	/// Create a random matrix with values in [0, 1)
 	pub fn random(rows: usize, cols: usize) -> Self {
-		use rand::Rng;
 		let mut rng = rand::thread_rng();
 		let data: Vec<f64> = (0..rows * cols).map(|_| rng.gen::<f64>()).collect();
 		Matrix { data, rows, cols }
@@ -113,7 +113,7 @@ impl Index<(usize, usize)> for Matrix {
 
 	#[inline]
 	fn index(&self, (row, col): (usize, usize)) -> &Self::Output {
-		&self.data[row * self.cols + col]
+		&self.data[col * self.rows + row]
 	}
 }
 
@@ -121,6 +121,6 @@ impl Index<(usize, usize)> for Matrix {
 impl IndexMut<(usize, usize)> for Matrix {
 	#[inline]
 	fn index_mut(&mut self, (row, col): (usize, usize)) -> &mut Self::Output {
-		&mut self.data[row * self.cols + col]
+		&mut self.data[col * self.rows + row]
 	}
 }

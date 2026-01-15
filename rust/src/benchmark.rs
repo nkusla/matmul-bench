@@ -1,4 +1,4 @@
-use crate::classic_matmul::classic_matmul;
+use crate::iterative_matmul::iterative_matmul;
 use crate::divide_conquer_matmul::divide_conquer_matmul;
 use crate::matrix::Matrix;
 use std::fs::File;
@@ -63,19 +63,19 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 		// Calculate FLOPS for this size (2n³ for matrix multiplication)
 		let flops = 2.0 * (n as f64).powi(3);
 
-		// Benchmark classic algorithm
+		// Benchmark iterative algorithm
 		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-			let time_classic = benchmark_algorithm(|a, b| classic_matmul(a, b), "Classic", &a, &b);
-			let gflops_classic = flops / (time_classic / 1e3) / 1e9; // Convert ms to s for GFLOPS
+			let time_iterative = benchmark_algorithm(|a, b| iterative_matmul(a, b), "Iterative", &a, &b);
+			let gflops_iterative = flops / (time_iterative / 1e3) / 1e9; // Convert ms to s for GFLOPS
 			results.push(BenchmarkResult {
 				size: n,
-				algorithm: "Classic".to_string(),
-				time: time_classic,
-				gflops: gflops_classic,
+				algorithm: "Iterative".to_string(),
+				time: time_iterative,
+				gflops: gflops_iterative,
 			});
 			println!(
 				"    Time: {:.2} ms, Performance: {:.2} GFLOPS",
-				time_classic, gflops_classic
+				time_iterative, gflops_iterative
 			);
 		})) {
 			Err(e) => println!("    Error: {:?}", e),
