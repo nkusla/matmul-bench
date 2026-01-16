@@ -3,18 +3,17 @@ using Base.Threads
 include("iterative_matmul.jl")
 
 """
-    divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
+    divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64) where T
 
-Divide and conquer matrix multiplication algorithm with optional parallelization.
+Divide and conquer matrix multiplication algorithm with parallelization.
 Recursively divides matrices into quadrants until reaching the threshold,
 then uses standard multiplication.
 
 Arguments:
 - A, B: Input matrices to multiply
 - threshold: Minimum size to switch to standard multiplication (default: 64)
-- parallel: Whether to use parallel execution (default: true)
 """
-function divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64, parallel::Bool=true) where T
+function divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -22,15 +21,19 @@ function divide_conquer_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; thres
     throw(DimensionMismatch("Matrix dimensions must agree: A is $(m)x$(n), B is $(q)x$(p)"))
   end
 
-  return _divide_conquer_recursive(A, B, threshold, parallel)
+  if Threads.nthreads() <= 1
+    throw(ArgumentError("divide_conquer_matmul requires multiple threads to run"))
+  end
+
+  return _divide_conquer_recursive(A, B, threshold)
 end
 
 """
-    _divide_conquer_recursive(A, B, threshold, parallel)
+    _divide_conquer_recursive(A, B, threshold)
 
 Internal recursive function for divide and conquer multiplication.
 """
-function _divide_conquer_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, threshold::Int, parallel::Bool) where T
+function _divide_conquer_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, threshold::Int) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -62,34 +65,22 @@ function _divide_conquer_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, t
   # C21 = A21*B11 + A22*B21
   # C22 = A21*B12 + A22*B22
 
-  if parallel && Threads.nthreads() > 1
-    # Parallel computation using threads
-    # Spawn 8 tasks for the 8 required products
-    t1 = Threads.@spawn _divide_conquer_recursive(A11, B11, threshold, parallel)
-    t2 = Threads.@spawn _divide_conquer_recursive(A12, B21, threshold, parallel)
-    t3 = Threads.@spawn _divide_conquer_recursive(A11, B12, threshold, parallel)
-    t4 = Threads.@spawn _divide_conquer_recursive(A12, B22, threshold, parallel)
-    t5 = Threads.@spawn _divide_conquer_recursive(A21, B11, threshold, parallel)
-    t6 = Threads.@spawn _divide_conquer_recursive(A22, B21, threshold, parallel)
-    t7 = Threads.@spawn _divide_conquer_recursive(A21, B12, threshold, parallel)
-    t8 = Threads.@spawn _divide_conquer_recursive(A22, B22, threshold, parallel)
+  # Parallel computation using threads
+  # Spawn 8 tasks for the 8 required products
+  t1 = Threads.@spawn _divide_conquer_recursive(A11, B11, threshold)
+  t2 = Threads.@spawn _divide_conquer_recursive(A12, B21, threshold)
+  t3 = Threads.@spawn _divide_conquer_recursive(A11, B12, threshold)
+  t4 = Threads.@spawn _divide_conquer_recursive(A12, B22, threshold)
+  t5 = Threads.@spawn _divide_conquer_recursive(A21, B11, threshold)
+  t6 = Threads.@spawn _divide_conquer_recursive(A22, B21, threshold)
+  t7 = Threads.@spawn _divide_conquer_recursive(A21, B12, threshold)
+  t8 = Threads.@spawn _divide_conquer_recursive(A22, B22, threshold)
 
-    # Fetch results and combine
-    C11 = fetch(t1) + fetch(t2)
-    C12 = fetch(t3) + fetch(t4)
-    C21 = fetch(t5) + fetch(t6)
-    C22 = fetch(t7) + fetch(t8)
-  else
-    # Sequential computation
-    C11 = _divide_conquer_recursive(A11, B11, threshold, parallel) +
-          _divide_conquer_recursive(A12, B21, threshold, parallel)
-    C12 = _divide_conquer_recursive(A11, B12, threshold, parallel) +
-          _divide_conquer_recursive(A12, B22, threshold, parallel)
-    C21 = _divide_conquer_recursive(A21, B11, threshold, parallel) +
-          _divide_conquer_recursive(A22, B21, threshold, parallel)
-    C22 = _divide_conquer_recursive(A21, B12, threshold, parallel) +
-          _divide_conquer_recursive(A22, B22, threshold, parallel)
-  end
+  # Fetch results and combine
+  C11 = fetch(t1) + fetch(t2)
+  C12 = fetch(t3) + fetch(t4)
+  C21 = fetch(t5) + fetch(t6)
+  C22 = fetch(t7) + fetch(t8)
 
   # Combine quadrants
   C = [C11 C12; C21 C22]
