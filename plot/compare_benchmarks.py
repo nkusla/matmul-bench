@@ -37,17 +37,18 @@ julia_df['language'] = 'Julia'
 rust_df['language'] = 'Rust'
 
 # Get unique algorithms (excluding Julia-Builtin which is Julia-only)
-algorithms = ['Classic', 'Divide-Conquer']
+algorithms = ['Iterative', 'Divide-Conquer', 'Strassen']
 
 # Create plots for each algorithm
 for algorithm in algorithms:
+    # Time comparison plots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
     # Add thread info to title for Divide-Conquer
-    if algorithm == 'Divide-Conquer':
-        title = f'{algorithm} Matrix Multiplication: Rust vs Julia ({julia_thread_count} threads)'
+    if algorithm == 'Iterative':
+        title = f'{algorithm} algorithm'
     else:
-        title = f'{algorithm} Matrix Multiplication: Rust vs Julia'
+        title = f'{algorithm} algorithm ({julia_thread_count} threads)'
 
     fig.suptitle(title, fontsize=16, fontweight='bold')
 
@@ -55,7 +56,7 @@ for algorithm in algorithms:
     julia_data = julia_df[julia_df['algorithm'] == algorithm]
     rust_data = rust_df[rust_df['algorithm'] == algorithm]
 
-    # Plot 1: Linear Scale
+    # Plot 1: Linear Scale (Time)
     julia_label = 'Julia'
     rust_label = 'Rust'
 
@@ -71,7 +72,7 @@ for algorithm in algorithms:
     ax1.set_xticks(julia_data['size'])
     ax1.set_xticklabels(julia_data['size'])
 
-    # Plot 2: Log Scale
+    # Plot 2: Log Scale (Time)
     ax2.plot(julia_data['size'], julia_data['time_ms'],
              marker='o', linewidth=2, markersize=8, label=julia_label, color='#9558B2')
     ax2.plot(rust_data['size'], rust_data['time_ms'],
@@ -83,23 +84,46 @@ for algorithm in algorithms:
     ax2.grid(True, alpha=0.3)
     ax2.set_yscale('log')
     ax2.set_xscale('log')
-    # ax2.set_xticks(julia_data['size'])
-    # ax2.set_xticklabels(julia_data['size'])
+    ax2.set_xticks(julia_data['size'])
+    ax2.set_xticklabels(julia_data['size'])
 
     plt.tight_layout()
 
-    # Save plot
+    # Save time comparison plot
     output_file = os.path.join(OUTPUT_DIR, f'{algorithm.lower().replace("-", "_")}_comparison.png')
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     print(f"Saved: {output_file}")
     plt.close()
 
-# Create a combined plot with Julia builtin
+    # Memory comparison plot (separate)
+    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+    fig.suptitle(f'{algorithm} algorithm: Memory Usage', fontsize=16, fontweight='bold')
+
+    ax.plot(julia_data['size'], julia_data['memory_mb'],
+            marker='o', linewidth=2, markersize=8, label=julia_label, color='#9558B2')
+    ax.plot(rust_data['size'], rust_data['memory_mb'],
+            marker='s', linewidth=2, markersize=8, label=rust_label, color='#CE422B')
+    ax.set_xlabel('Matrix Size', fontsize=12)
+    ax.set_ylabel('Memory (MB)', fontsize=12)
+    ax.legend(fontsize=11)
+    ax.grid(True, alpha=0.3)
+    ax.set_xticks(julia_data['size'])
+    ax.set_xticklabels(julia_data['size'])
+
+    plt.tight_layout()
+
+    # Save memory plot
+    output_file = os.path.join(OUTPUT_DIR, f'{algorithm.lower().replace("-", "_")}_memory.png')
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    print(f"Saved: {output_file}")
+    plt.close()
+
+# Create a combined time comparison plot with Julia builtin
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 fig.suptitle('All Algorithms Comparison', fontsize=16, fontweight='bold')
 
-# Plot 1: Linear Scale
-for algorithm in ['Classic', 'Divide-Conquer']:
+# Plot 1: Linear Scale (Time)
+for algorithm in ['Iterative', 'Divide-Conquer', 'Strassen']:
     julia_data = julia_df[julia_df['algorithm'] == algorithm]
     rust_data = rust_df[rust_df['algorithm'] == algorithm]
 
@@ -119,11 +143,9 @@ ax1.set_ylabel('Time (ms)', fontsize=12)
 ax1.set_title('Execution Time (Linear Scale)', fontsize=13, fontweight='bold')
 ax1.legend(fontsize=9)
 ax1.grid(True, alpha=0.3)
-# ax1.set_xticks(julia_builtin['size'])
-# ax1.set_xticklabels(julia_builtin['size'])
 
-# Plot 2: Log Scale
-for algorithm in ['Classic', 'Divide-Conquer']:
+# Plot 2: Log Scale (Time)
+for algorithm in ['Iterative', 'Divide-Conquer', 'Strassen']:
     julia_data = julia_df[julia_df['algorithm'] == algorithm]
     rust_data = rust_df[rust_df['algorithm'] == algorithm]
 
@@ -149,6 +171,35 @@ ax2.set_xticklabels(julia_builtin['size'])
 
 plt.tight_layout()
 output_file = os.path.join(OUTPUT_DIR, 'all_algorithms_comparison.png')
+plt.savefig(output_file, dpi=300, bbox_inches='tight')
+print(f"Saved: {output_file}")
+plt.close()
+
+# Create a combined memory comparison plot
+fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+fig.suptitle('All Algorithms Memory Usage', fontsize=16, fontweight='bold')
+
+for algorithm in ['Iterative', 'Divide-Conquer', 'Strassen']:
+    julia_data = julia_df[julia_df['algorithm'] == algorithm]
+    rust_data = rust_df[rust_df['algorithm'] == algorithm]
+
+    ax.plot(julia_data['size'], julia_data['memory_mb'],
+            marker='o', linewidth=2, markersize=6, label=f'Julia {algorithm}', linestyle='-')
+    ax.plot(rust_data['size'], rust_data['memory_mb'],
+            marker='s', linewidth=2, markersize=6, label=f'Rust {algorithm}', linestyle='--')
+
+# Add Julia builtin memory
+ax.plot(julia_builtin['size'], julia_builtin['memory_mb'],
+        marker='^', linewidth=2, markersize=6, label='Julia Builtin (BLAS)',
+        color='green', linestyle='-')
+
+ax.set_xlabel('Matrix Size', fontsize=12)
+ax.set_ylabel('Memory (MB)', fontsize=12)
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+output_file = os.path.join(OUTPUT_DIR, 'all_algorithms_memory.png')
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Saved: {output_file}")
 plt.close()

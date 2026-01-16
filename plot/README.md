@@ -26,7 +26,7 @@ python compare_benchmarks.py
 ```
 
 This will generate three plots in the `../results` directory:
-- `classic_comparison.png` - Classic algorithm comparison
+- `iterative_comparison.png` - Iterative algorithm comparison
 - `divide_conquer_comparison.png` - Divide-and-conquer algorithm comparison (with thread count)
 - `all_algorithms_comparison.png` - Combined comparison including Julia's BLAS implementation
 
