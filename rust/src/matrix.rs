@@ -66,6 +66,25 @@ impl Matrix {
 		}
 	}
 
+	/// Subtract two matrices element-wise
+	pub fn sub(&self, other: &Matrix) -> Matrix {
+		assert_eq!(self.rows, other.rows);
+		assert_eq!(self.cols, other.cols);
+
+		let data: Vec<f64> = self
+			.data
+			.iter()
+			.zip(other.data.iter())
+			.map(|(a, b)| a - b)
+			.collect();
+
+		Matrix {
+			data,
+			rows: self.rows,
+			cols: self.cols,
+		}
+	}
+
 	/// Combine four quadrant matrices into a single matrix
 	pub fn combine_quadrants(c11: &Matrix, c12: &Matrix, c21: &Matrix, c22: &Matrix) -> Matrix {
 		let rows_top = c11.rows;

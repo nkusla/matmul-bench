@@ -1,5 +1,6 @@
 use crate::iterative_matmul::iterative_matmul;
 use crate::divide_conquer_matmul::divide_conquer_matmul;
+use crate::strassen_matmul::strassen_matmul;
 use crate::matrix::Matrix;
 use std::fs::File;
 use std::io::Write;
@@ -101,6 +102,29 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 			println!(
 				"    Time: {:.2} ms, Memory: {:.2} MB",
 				time_dc, memory_dc
+			);
+		})) {
+			Err(e) => println!("    Error: {:?}", e),
+			Ok(_) => {}
+		}
+
+		// Benchmark Strassen (always parallel)
+		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+			let (time_strassen, memory_strassen) = benchmark_algorithm(
+				|a, b| strassen_matmul(a, b, 64, true),
+				"Strassen",
+				&a,
+				&b,
+			);
+			results.push(BenchmarkResult {
+				size: n,
+				algorithm: "Strassen".to_string(),
+				time: time_strassen,
+				memory: memory_strassen,
+			});
+			println!(
+				"    Time: {:.2} ms, Memory: {:.2} MB",
+				time_strassen, memory_strassen
 			);
 		})) {
 			Err(e) => println!("    Error: {:?}", e),

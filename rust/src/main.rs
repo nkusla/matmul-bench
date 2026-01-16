@@ -1,6 +1,7 @@
 mod benchmark;
 mod iterative_matmul;
 mod divide_conquer_matmul;
+mod strassen_matmul;
 mod matrix;
 
 use benchmark::{print_results_table, run_benchmarks, save_results_csv};
@@ -31,7 +32,7 @@ fn main() {
 		512,  // Medium-large
 		1024, // Large
 		2048, // Very large
-		      //4096,  // Extra large
+		//4096,  // Extra large
 	];
 
 	println!("Testing sizes: {:?}", sizes);

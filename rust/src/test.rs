@@ -1,9 +1,11 @@
 mod iterative_matmul;
 mod divide_conquer_matmul;
+mod strassen_matmul;
 mod matrix;
 
 use iterative_matmul::iterative_matmul;
 use divide_conquer_matmul::divide_conquer_matmul;
+use strassen_matmul::strassen_matmul;
 use matrix::Matrix;
 
 /// Calculate Frobenius norm of difference with another matrix
@@ -76,6 +78,15 @@ fn main() {
 			"Divide-conquer multiplication error too large"
 		);
 		println!("  ✓ Divide-Conquer: error = {}", error_dc_par);
+
+		// Test Strassen
+		let c_strassen = strassen_matmul(&a, &b, 4, true);
+		let error_strassen = matrix_error(&c_reference, &c_strassen);
+		assert!(
+			error_strassen < 1e-10,
+			"Strassen multiplication error too large"
+		);
+		println!("  ✓ Strassen: error = {}", error_strassen);
 	}
 
 	println!("\n{}", "=".repeat(50));

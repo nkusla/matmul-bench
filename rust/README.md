@@ -48,7 +48,7 @@ cargo run --release
 
 By default, Rayon will use all available CPU cores. To control the number of threads:
 ```bash
-RAYON_NUM_THREADS=4 cargo run --release
+RAYON_NUM_THREADS=8 cargo run --release
 ```
 
 Or use all available cores explicitly:
