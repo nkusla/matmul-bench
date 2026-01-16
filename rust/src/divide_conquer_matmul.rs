@@ -2,7 +2,7 @@ use crate::iterative_matmul::iterative_matmul;
 use crate::matrix::Matrix;
 use rayon::prelude::*;
 
-/// Divide and conquer matrix multiplication algorithm with optional parallelization.
+/// Divide and conquer matrix multiplication algorithm with parallelization.
 /// Recursively divides matrices into quadrants until reaching the threshold,
 /// then uses standard multiplication.
 ///
@@ -10,11 +10,10 @@ use rayon::prelude::*;
 /// * `a` - First input matrix
 /// * `b` - Second input matrix
 /// * `threshold` - Minimum size to switch to standard multiplication
-/// * `parallel` - Whether to use parallel execution
 ///
 /// # Returns
 /// Result matrix
-pub fn divide_conquer_matmul(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool) -> Matrix {
+pub fn divide_conquer_matmul(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	let m = a.rows;
 	let n = a.cols;
 	let q = b.rows;
@@ -27,11 +26,15 @@ pub fn divide_conquer_matmul(a: &Matrix, b: &Matrix, threshold: usize, parallel:
 		);
 	}
 
-	divide_conquer_recursive(a, b, threshold, parallel)
+	if rayon::current_num_threads() <= 1 {
+		panic!("divide_conquer_matmul requires multiple threads to run");
+	}
+
+	divide_conquer_recursive(a, b, threshold)
 }
 
 /// Internal recursive function for divide and conquer multiplication.
-fn divide_conquer_recursive(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool) -> Matrix {
+fn divide_conquer_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	let m = a.rows;
 	let n = a.cols;
 	let p = b.cols;
@@ -64,48 +67,25 @@ fn divide_conquer_recursive(a: &Matrix, b: &Matrix, threshold: usize, parallel: 
 	// C21 = A21*B11 + A22*B21
 	// C22 = A21*B12 + A22*B22
 
-	let (c11, c12, c21, c22) = if parallel {
-		// Parallel computation using rayon
-		let results: Vec<Matrix> = vec![
-			(&a11, &b11),
-			(&a12, &b21),
-			(&a11, &b12),
-			(&a12, &b22),
-			(&a21, &b11),
-			(&a22, &b21),
-			(&a21, &b12),
-			(&a22, &b22),
-		]
-		.into_par_iter()
-		.map(|(a_sub, b_sub)| divide_conquer_recursive(a_sub, b_sub, threshold, parallel))
-		.collect();
+	// Parallel computation using rayon
+	let results: Vec<Matrix> = vec![
+		(&a11, &b11),
+		(&a12, &b21),
+		(&a11, &b12),
+		(&a12, &b22),
+		(&a21, &b11),
+		(&a22, &b21),
+		(&a21, &b12),
+		(&a22, &b22),
+	]
+	.into_par_iter()
+	.map(|(a_sub, b_sub)| divide_conquer_recursive(a_sub, b_sub, threshold))
+	.collect();
 
-		let c11 = results[0].add(&results[1]);
-		let c12 = results[2].add(&results[3]);
-		let c21 = results[4].add(&results[5]);
-		let c22 = results[6].add(&results[7]);
-
-		(c11, c12, c21, c22)
-	} else {
-		// Sequential computation
-		let p1 = divide_conquer_recursive(&a11, &b11, threshold, parallel);
-		let p2 = divide_conquer_recursive(&a12, &b21, threshold, parallel);
-		let c11 = p1.add(&p2);
-
-		let p3 = divide_conquer_recursive(&a11, &b12, threshold, parallel);
-		let p4 = divide_conquer_recursive(&a12, &b22, threshold, parallel);
-		let c12 = p3.add(&p4);
-
-		let p5 = divide_conquer_recursive(&a21, &b11, threshold, parallel);
-		let p6 = divide_conquer_recursive(&a22, &b21, threshold, parallel);
-		let c21 = p5.add(&p6);
-
-		let p7 = divide_conquer_recursive(&a21, &b12, threshold, parallel);
-		let p8 = divide_conquer_recursive(&a22, &b22, threshold, parallel);
-		let c22 = p7.add(&p8);
-
-		(c11, c12, c21, c22)
-	};
+	let c11 = results[0].add(&results[1]);
+	let c12 = results[2].add(&results[3]);
+	let c21 = results[4].add(&results[5]);
+	let c22 = results[6].add(&results[7]);
 
 	// Combine quadrants
 	Matrix::combine_quadrants(&c11, &c12, &c21, &c22)

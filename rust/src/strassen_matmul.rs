@@ -2,7 +2,7 @@ use crate::iterative_matmul::iterative_matmul;
 use crate::matrix::Matrix;
 use rayon::prelude::*;
 
-/// Strassen matrix multiplication algorithm with optional parallelization.
+/// Strassen matrix multiplication algorithm with parallelization.
 /// Uses 7 recursive multiplications instead of 8 by computing intermediate
 /// products and combining them cleverly.
 ///
@@ -10,11 +10,10 @@ use rayon::prelude::*;
 /// * `a` - First input matrix
 /// * `b` - Second input matrix
 /// * `threshold` - Minimum size to switch to standard multiplication
-/// * `parallel` - Whether to use parallel execution
 ///
 /// # Returns
 /// Result matrix
-pub fn strassen_matmul(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool) -> Matrix {
+pub fn strassen_matmul(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	let m = a.rows;
 	let n = a.cols;
 	let q = b.rows;
@@ -27,11 +26,15 @@ pub fn strassen_matmul(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool)
 		);
 	}
 
-	strassen_recursive(a, b, threshold, parallel)
+	if rayon::current_num_threads() <= 1 {
+		panic!("strassen_matmul requires multiple threads to run");
+	}
+
+	strassen_recursive(a, b, threshold)
 }
 
 /// Internal recursive function for Strassen multiplication.
-fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool) -> Matrix {
+fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	let m = a.rows;
 	let n = a.cols;
 	let p = b.cols;
@@ -67,45 +70,32 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize, parallel: bool) 
 	// M6 = (A21 - A11) * (B11 + B12)
 	// M7 = (A12 - A22) * (B21 + B22)
 
-	let (m1, m2, m3, m4, m5, m6, m7) = if parallel {
-		// Prepare all inputs for parallel computation
-		let inputs: Vec<(Matrix, Matrix)> = vec![
-			(a11.add(&a22), b11.add(&b22)), // M1
-			(a21.add(&a22), b11.clone()),   // M2
-			(a11.clone(), b12.sub(&b22)),   // M3
-			(a22.clone(), b21.sub(&b11)),   // M4
-			(a11.add(&a12), b22.clone()),   // M5
-			(a21.sub(&a11), b11.add(&b12)), // M6
-			(a12.sub(&a22), b21.add(&b22)), // M7
-		];
+	// Prepare all inputs for parallel computation
+	let inputs: Vec<(Matrix, Matrix)> = vec![
+		(a11.add(&a22), b11.add(&b22)), // M1
+		(a21.add(&a22), b11.clone()),   // M2
+		(a11.clone(), b12.sub(&b22)),   // M3
+		(a22.clone(), b21.sub(&b11)),   // M4
+		(a11.add(&a12), b22.clone()),   // M5
+		(a21.sub(&a11), b11.add(&b12)), // M6
+		(a12.sub(&a22), b21.add(&b22)), // M7
+	];
 
-		// Parallel computation using rayon
-		let results: Vec<Matrix> = inputs
-			.into_par_iter()
-			.map(|(a_sub, b_sub)| strassen_recursive(&a_sub, &b_sub, threshold, parallel))
-			.collect();
+	// Parallel computation using rayon
+	let results: Vec<Matrix> = inputs
+		.into_par_iter()
+		.map(|(a_sub, b_sub)| strassen_recursive(&a_sub, &b_sub, threshold))
+		.collect();
 
-		(
-			results[0].clone(),
-			results[1].clone(),
-			results[2].clone(),
-			results[3].clone(),
-			results[4].clone(),
-			results[5].clone(),
-			results[6].clone(),
-		)
-	} else {
-		// Sequential computation
-		let m1 = strassen_recursive(&a11.add(&a22), &b11.add(&b22), threshold, parallel);
-		let m2 = strassen_recursive(&a21.add(&a22), &b11, threshold, parallel);
-		let m3 = strassen_recursive(&a11, &b12.sub(&b22), threshold, parallel);
-		let m4 = strassen_recursive(&a22, &b21.sub(&b11), threshold, parallel);
-		let m5 = strassen_recursive(&a11.add(&a12), &b22, threshold, parallel);
-		let m6 = strassen_recursive(&a21.sub(&a11), &b11.add(&b12), threshold, parallel);
-		let m7 = strassen_recursive(&a12.sub(&a22), &b21.add(&b22), threshold, parallel);
-
-		(m1, m2, m3, m4, m5, m6, m7)
-	};
+	let (m1, m2, m3, m4, m5, m6, m7) = (
+		results[0].clone(),
+		results[1].clone(),
+		results[2].clone(),
+		results[3].clone(),
+		results[4].clone(),
+		results[5].clone(),
+		results[6].clone(),
+	);
 
 	// Combine the products to get result quadrants
 	// C11 = M1 + M4 - M5 + M7

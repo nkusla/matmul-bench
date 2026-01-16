@@ -29,9 +29,6 @@ where
 {
 	println!("  Benchmarking {}...", name);
 
-	// Warmup run
-	let _ = algorithm_fn(a, b);
-
 	// Benchmark runs
 	let samples = 10;
 	let mut times = Vec::with_capacity(samples);
@@ -88,7 +85,7 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 		// Benchmark divide-and-conquer (always parallel)
 		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
 			let (time_dc, memory_dc) = benchmark_algorithm(
-				|a, b| divide_conquer_matmul(a, b, 64, true),
+				|a, b| divide_conquer_matmul(a, b, 64),
 				"Divide-Conquer",
 				&a,
 				&b,
@@ -111,7 +108,7 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 		// Benchmark Strassen (always parallel)
 		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
 			let (time_strassen, memory_strassen) = benchmark_algorithm(
-				|a, b| strassen_matmul(a, b, 64, true),
+				|a, b| strassen_matmul(a, b, 64),
 				"Strassen",
 				&a,
 				&b,

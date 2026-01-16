@@ -71,7 +71,7 @@ fn main() {
 		println!("  ✓ Iterative: error = {}", error_iterative);
 
 		// Test divide-and-conquer
-		let c_dc_par = divide_conquer_matmul(&a, &b, 4, true);
+		let c_dc_par = divide_conquer_matmul(&a, &b, 4);
 		let error_dc_par = matrix_error(&c_reference, &c_dc_par);
 		assert!(
 			error_dc_par < 1e-10,
@@ -80,7 +80,7 @@ fn main() {
 		println!("  ✓ Divide-Conquer: error = {}", error_dc_par);
 
 		// Test Strassen
-		let c_strassen = strassen_matmul(&a, &b, 4, true);
+		let c_strassen = strassen_matmul(&a, &b, 4);
 		let error_strassen = matrix_error(&c_reference, &c_strassen);
 		assert!(
 			error_strassen < 1e-10,
