@@ -70,15 +70,45 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	// M6 = (A21 - A11) * (B11 + B12)
 	// M7 = (A12 - A22) * (B21 + B22)
 
+	let mut a11_a22 = a11.clone();
+	a11_a22.add(&a22);
+
+	let mut b11_b22 = b11.clone();
+	b11_b22.add(&b22);
+
+	let mut a21_a22 = a21.clone();
+	a21_a22.add(&a22);
+
+	let mut b12_b22 = b12.clone();
+	b12_b22.sub(&b22);
+
+	let mut b21_b11 = b21.clone();
+	b21_b11.sub(&b11);
+
+	let mut a11_a12 = a11.clone();
+	a11_a12.add(&a12);
+
+	let mut a21_a11 = a21.clone();
+	a21_a11.sub(&a11);
+
+	let mut b11_b12 = b11.clone();
+	b11_b12.add(&b12);
+
+	let mut a12_a22 = a12.clone();
+	a12_a22.sub(&a22);
+
+	let mut b21_b22 = b21.clone();
+	b21_b22.add(&b22);
+
 	// Prepare all inputs for parallel computation
-	let inputs: Vec<(Matrix, Matrix)> = vec![
-		(a11.add(&a22), b11.add(&b22)), // M1
-		(a21.add(&a22), b11.clone()),   // M2
-		(a11.clone(), b12.sub(&b22)),   // M3
-		(a22.clone(), b21.sub(&b11)),   // M4
-		(a11.add(&a12), b22.clone()),   // M5
-		(a21.sub(&a11), b11.add(&b12)), // M6
-		(a12.sub(&a22), b21.add(&b22)), // M7
+	let inputs: Vec<(&Matrix, &Matrix)> = vec![
+		(&a11_a22, &b11_b22), // M1
+		(&a21_a22, &b11),     // M2
+		(&a11, &b12_b22),     // M3
+		(&a22, &b21_b11),     // M4
+		(&a11_a12, &b22),     // M5
+		(&a21_a11, &b11_b12), // M6
+		(&a12_a22, &b21_b22), // M7
 	];
 
 	// Parallel computation using rayon
@@ -87,15 +117,7 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 		.map(|(a_sub, b_sub)| strassen_recursive(&a_sub, &b_sub, threshold))
 		.collect();
 
-	let (m1, m2, m3, m4, m5, m6, m7) = (
-		results[0].clone(),
-		results[1].clone(),
-		results[2].clone(),
-		results[3].clone(),
-		results[4].clone(),
-		results[5].clone(),
-		results[6].clone(),
-	);
+	let [m1, m2, m3, mut m4, mut m5, mut m6, mut m7]: [Matrix; 7] = results.try_into().unwrap();
 
 	// Combine the products to get result quadrants
 	// C11 = M1 + M4 - M5 + M7
@@ -103,10 +125,17 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	// C21 = M2 + M4
 	// C22 = M1 - M2 + M3 + M6
 
-	let c11 = m1.add(&m4).sub(&m5).add(&m7);
-	let c12 = m3.add(&m5);
-	let c21 = m2.add(&m4);
-	let c22 = m1.sub(&m2).add(&m3).add(&m6);
+	m7.add(&m1).add(&m4).sub(&m5);
+	let c11 = m7;
+
+	m5.add(&m3);
+	let c12 = m5;
+
+	m4.add(&m2);
+	let c21 = m4;
+
+	m6.add(&m1).sub(&m2).add(&m3);
+	let c22 = m6;
 
 	// Combine quadrants
 	Matrix::combine_quadrants(&c11, &c12, &c21, &c22)

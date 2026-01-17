@@ -82,10 +82,20 @@ fn divide_conquer_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix 
 	.map(|(a_sub, b_sub)| divide_conquer_recursive(a_sub, b_sub, threshold))
 	.collect();
 
-	let c11 = results[0].add(&results[1]);
-	let c12 = results[2].add(&results[3]);
-	let c21 = results[4].add(&results[5]);
-	let c22 = results[6].add(&results[7]);
+	let [mut c11,
+		r1,
+		mut c12,
+		r3,
+		mut c21,
+		r5,
+		mut c22,
+		r7]: [Matrix; 8] =
+		results.try_into().unwrap();
+
+	c11.add(&r1);
+	c12.add(&r3);
+	c21.add(&r5);
+	c22.add(&r7);
 
 	// Combine quadrants
 	Matrix::combine_quadrants(&c11, &c12, &c21, &c22)

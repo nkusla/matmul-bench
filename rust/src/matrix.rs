@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 use rand::Rng;
 
 /// Matrix stored in contiguous memory (column-major order)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Matrix {
 	pub data: Vec<f64>,
 	pub rows: usize,
@@ -47,42 +47,26 @@ impl Matrix {
 		result
 	}
 
-	/// Add two matrices element-wise
-	pub fn add(&self, other: &Matrix) -> Matrix {
+	/// Add another matrix in-place (modifies self)
+	pub fn add(&mut self, other: &Matrix) -> &mut Self {
 		assert_eq!(self.rows, other.rows);
 		assert_eq!(self.cols, other.cols);
 
-		let data: Vec<f64> = self
-			.data
-			.iter()
-			.zip(other.data.iter())
-			.map(|(a, b)| a + b)
-			.collect();
-
-		Matrix {
-			data,
-			rows: self.rows,
-			cols: self.cols,
+		for (a, b) in self.data.iter_mut().zip(other.data.iter()) {
+			*a += b;
 		}
+		self
 	}
 
-	/// Subtract two matrices element-wise
-	pub fn sub(&self, other: &Matrix) -> Matrix {
+	/// Subtract another matrix in-place (modifies self)
+	pub fn sub(&mut self, other: &Matrix) -> &mut Self {
 		assert_eq!(self.rows, other.rows);
 		assert_eq!(self.cols, other.cols);
 
-		let data: Vec<f64> = self
-			.data
-			.iter()
-			.zip(other.data.iter())
-			.map(|(a, b)| a - b)
-			.collect();
-
-		Matrix {
-			data,
-			rows: self.rows,
-			cols: self.cols,
+		for (a, b) in self.data.iter_mut().zip(other.data.iter()) {
+			*a -= b;
 		}
+		self
 	}
 
 	/// Combine four quadrant matrices into a single matrix
