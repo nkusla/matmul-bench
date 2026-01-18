@@ -100,8 +100,8 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 	let mut b21_b22 = b21.clone();
 	b21_b22.add(&b22);
 
-	// Prepare all inputs for parallel computation
-	let inputs: Vec<(&Matrix, &Matrix)> = vec![
+	// Parallel computation using rayon
+	let results: Vec<Matrix> = vec![
 		(&a11_a22, &b11_b22), // M1
 		(&a21_a22, &b11),     // M2
 		(&a11, &b12_b22),     // M3
@@ -109,15 +109,19 @@ fn strassen_recursive(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix {
 		(&a11_a12, &b22),     // M5
 		(&a21_a11, &b11_b12), // M6
 		(&a12_a22, &b21_b22), // M7
-	];
+	]
+	.into_par_iter()
+	.map(|(a_sub, b_sub)| strassen_recursive(a_sub, b_sub, threshold))
+	.collect();
 
-	// Parallel computation using rayon
-	let results: Vec<Matrix> = inputs
-		.into_par_iter()
-		.map(|(a_sub, b_sub)| strassen_recursive(&a_sub, &b_sub, threshold))
-		.collect();
-
-	let [m1, m2, m3, mut m4, mut m5, mut m6, mut m7]: [Matrix; 7] = results.try_into().unwrap();
+	let [m1,
+		m2,
+		m3,
+		mut m4,
+		mut m5,
+		mut m6,
+		mut m7]: [Matrix; 7] =
+		results.try_into().unwrap();
 
 	// Combine the products to get result quadrants
 	// C11 = M1 + M4 - M5 + M7
