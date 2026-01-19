@@ -95,20 +95,37 @@ for algorithm in algorithms:
     print(f"Saved: {output_file}")
     plt.close()
 
-    # Memory comparison plot (separate)
-    fig, ax = plt.subplots(1, 1, figsize=(10, 6))
-    fig.suptitle(f'{algorithm} algorithm: Memory Usage', fontsize=16, fontweight='bold')
+    # Memory comparison plot (separate) with both linear and log scale
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    fig.suptitle(f'{algorithm} algorithm', fontsize=16, fontweight='bold')
 
-    ax.plot(julia_data['size'], julia_data['memory_mb'],
+    # Plot 1: Linear Scale (Memory)
+    ax1.plot(julia_data['size'], julia_data['memory_mb'],
             marker='o', linewidth=2, markersize=8, label=julia_label, color='#9558B2')
-    ax.plot(rust_data['size'], rust_data['memory_mb'],
+    ax1.plot(rust_data['size'], rust_data['memory_mb'],
             marker='s', linewidth=2, markersize=8, label=rust_label, color='#CE422B')
-    ax.set_xlabel('Matrix Size', fontsize=12)
-    ax.set_ylabel('Memory (MB)', fontsize=12)
-    ax.legend(fontsize=11)
-    ax.grid(True, alpha=0.3)
-    ax.set_xticks(julia_data['size'])
-    ax.set_xticklabels(julia_data['size'])
+    ax1.set_xlabel('Matrix Size', fontsize=12)
+    ax1.set_ylabel('Memory (MB)', fontsize=12)
+    ax1.set_title('Memory Usage (Linear Scale)', fontsize=13, fontweight='bold')
+    ax1.legend(fontsize=11)
+    ax1.grid(True, alpha=0.3)
+    ax1.set_xticks(julia_data['size'])
+    ax1.set_xticklabels(julia_data['size'])
+
+    # Plot 2: Log Scale (Memory)
+    ax2.plot(julia_data['size'], julia_data['memory_mb'],
+            marker='o', linewidth=2, markersize=8, label=julia_label, color='#9558B2')
+    ax2.plot(rust_data['size'], rust_data['memory_mb'],
+            marker='s', linewidth=2, markersize=8, label=rust_label, color='#CE422B')
+    ax2.set_xlabel('Matrix Size', fontsize=12)
+    ax2.set_ylabel('Memory (MB)', fontsize=12)
+    ax2.set_title('Memory Usage (Log Scale)', fontsize=13, fontweight='bold')
+    ax2.legend(fontsize=11)
+    ax2.grid(True, alpha=0.3)
+    ax2.set_yscale('log')
+    ax2.set_xscale('log')
+    ax2.set_xticks(julia_data['size'])
+    ax2.set_xticklabels(julia_data['size'])
 
     plt.tight_layout()
 
@@ -175,28 +192,55 @@ plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Saved: {output_file}")
 plt.close()
 
-# Create a combined memory comparison plot
-fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+# Create a combined memory comparison plot with both linear and log scale
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 fig.suptitle('All Algorithms Memory Usage', fontsize=16, fontweight='bold')
 
+# Plot 1: Linear Scale
 for algorithm in ['Iterative', 'Divide-Conquer', 'Strassen']:
     julia_data = julia_df[julia_df['algorithm'] == algorithm]
     rust_data = rust_df[rust_df['algorithm'] == algorithm]
 
-    ax.plot(julia_data['size'], julia_data['memory_mb'],
+    ax1.plot(julia_data['size'], julia_data['memory_mb'],
             marker='o', linewidth=2, markersize=6, label=f'Julia {algorithm}', linestyle='-')
-    ax.plot(rust_data['size'], rust_data['memory_mb'],
+    ax1.plot(rust_data['size'], rust_data['memory_mb'],
             marker='s', linewidth=2, markersize=6, label=f'Rust {algorithm}', linestyle='--')
 
-# Add Julia builtin memory
-ax.plot(julia_builtin['size'], julia_builtin['memory_mb'],
+# Add Julia builtin memory to linear plot
+ax1.plot(julia_builtin['size'], julia_builtin['memory_mb'],
         marker='^', linewidth=2, markersize=6, label='Julia Builtin (BLAS)',
         color='green', linestyle='-')
 
-ax.set_xlabel('Matrix Size', fontsize=12)
-ax.set_ylabel('Memory (MB)', fontsize=12)
-ax.legend(fontsize=9)
-ax.grid(True, alpha=0.3)
+ax1.set_xlabel('Matrix Size', fontsize=12)
+ax1.set_ylabel('Memory (MB)', fontsize=12)
+ax1.set_title('Memory Usage (Linear Scale)', fontsize=13, fontweight='bold')
+ax1.legend(fontsize=9)
+ax1.grid(True, alpha=0.3)
+
+# Plot 2: Log Scale
+for algorithm in ['Iterative', 'Divide-Conquer', 'Strassen']:
+    julia_data = julia_df[julia_df['algorithm'] == algorithm]
+    rust_data = rust_df[rust_df['algorithm'] == algorithm]
+
+    ax2.plot(julia_data['size'], julia_data['memory_mb'],
+            marker='o', linewidth=2, markersize=6, label=f'Julia {algorithm}', linestyle='-')
+    ax2.plot(rust_data['size'], rust_data['memory_mb'],
+            marker='s', linewidth=2, markersize=6, label=f'Rust {algorithm}', linestyle='--')
+
+# Add Julia builtin memory to log plot
+ax2.plot(julia_builtin['size'], julia_builtin['memory_mb'],
+        marker='^', linewidth=2, markersize=6, label='Julia Builtin (BLAS)',
+        color='green', linestyle='-')
+
+ax2.set_xlabel('Matrix Size', fontsize=12)
+ax2.set_ylabel('Memory (MB)', fontsize=12)
+ax2.set_title('Memory Usage (Log Scale)', fontsize=13, fontweight='bold')
+ax2.legend(fontsize=9)
+ax2.grid(True, alpha=0.3)
+ax2.set_yscale('log')
+ax2.set_xscale('log')
+ax2.set_xticks(julia_builtin['size'])
+ax2.set_xticklabels(julia_builtin['size'])
 
 plt.tight_layout()
 output_file = os.path.join(OUTPUT_DIR, 'all_algorithms_memory.png')
