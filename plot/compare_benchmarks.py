@@ -268,14 +268,18 @@ def create_algorithm_comparison_table(algorithm, julia_data, rust_data, output_d
 	# Calculate speedup (Julia time / Rust time)
 	merged['speedup'] = merged['time_ms_julia'] / merged['time_ms_rust']
 
+	# Calculate memory ratio (Julia memory / Rust memory)
+	merged['memory_ratio'] = merged['memory_mb_julia'] / merged['memory_mb_rust']
+
 	# Create table data with proper column names
 	table_data = pd.DataFrame({
 		'Matrix size': merged['size'].astype(int).astype(str),
 		'Julia Time (ms)': merged['time_ms_julia'].round(2),
 		'Rust Time (ms)': merged['time_ms_rust'].round(2),
+		'Speedup (J/R)': merged['speedup'].round(2),
 		'Julia Memory (MB)': merged['memory_mb_julia'].round(2),
 		'Rust Memory (MB)': merged['memory_mb_rust'].round(2),
-		'Speedup (J/R)': merged['speedup'].round(2)
+		'Memory Ratio (J/R)': merged['memory_ratio'].round(2)
 	})
 
 	# Create figure with no axes - larger size
