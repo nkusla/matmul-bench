@@ -43,6 +43,7 @@ Arguments:
 """
 function run_benchmarks(sizes::Vector{Int})
   results = BenchmarkResult[]
+  threshold = 32  # Threshold for switching algorithms
 
   for n in sizes
     println("\nTesting matrix size: $(n)x$(n)")
@@ -65,7 +66,7 @@ function run_benchmarks(sizes::Vector{Int})
     # Benchmark divide-and-conquer (always parallel)
     try
       time_dc, mem_dc = benchmark_algorithm(divide_conquer_matmul, "Divide-Conquer",
-        A, B; threshold=64)
+        A, B; threshold=threshold)
       push!(results, BenchmarkResult(n, "Divide-Conquer", time_dc, mem_dc))
       @printf("    Time: %.2f ms, Memory: %.2f MB\n",
               time_dc, mem_dc)
@@ -76,7 +77,7 @@ function run_benchmarks(sizes::Vector{Int})
     # Benchmark Strassen (always parallel)
     try
       time_strassen, mem_strassen = benchmark_algorithm(strassen_matmul, "Strassen",
-        A, B; threshold=64)
+        A, B; threshold=threshold)
       push!(results, BenchmarkResult(n, "Strassen", time_strassen, mem_strassen))
       @printf("    Time: %.2f ms, Memory: %.2f MB\n",
               time_strassen, mem_strassen)

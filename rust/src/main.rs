@@ -26,13 +26,7 @@ fn main() {
 	// Define matrix sizes to test
 	// Start small and scale up
 	let sizes = vec![
-		64,   // Small
-		128,  // Medium-small
-		256,  // Medium
-		512,  // Medium-large
-		1024, // Large
-		2048, // Very large
-		//4096,  // Extra large
+		64, 128, 256, 512, 1024, 2048,
 	];
 
 	println!("Testing sizes: {:?}", sizes);
@@ -54,7 +48,7 @@ fn main() {
 
 	let os = std::env::consts::OS;
 	let arch = std::env::consts::ARCH;
-	let filename = format!("../results/rust_benchmark_{os}_{arch}_{num_threads}t_{timestamp}.csv");
+	let filename = format!("../results/data/rust_benchmark_{os}_{arch}_{num_threads}t_{timestamp}.csv");
 
 	if let Err(e) = save_results_csv(&results, &filename) {
 		eprintln!("Error saving results: {}", e);

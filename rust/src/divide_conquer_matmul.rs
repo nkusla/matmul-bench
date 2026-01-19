@@ -2,6 +2,18 @@ use crate::iterative_matmul::iterative_matmul;
 use crate::matrix::Matrix;
 use rayon::prelude::*;
 
+/// Find the next power of 2 greater than or equal to n
+fn next_power_of_2(n: usize) -> usize {
+	if n == 0 {
+		return 1;
+	}
+	let mut power = 1;
+	while power < n {
+		power *= 2;
+	}
+	power
+}
+
 /// Divide and conquer matrix multiplication algorithm with parallelization.
 /// Recursively divides matrices into quadrants until reaching the threshold,
 /// then uses standard multiplication.
@@ -30,7 +42,18 @@ pub fn divide_conquer_matmul(a: &Matrix, b: &Matrix, threshold: usize) -> Matrix
 		panic!("divide_conquer_matmul requires multiple threads to run");
 	}
 
-	divide_conquer_recursive(a, b, threshold)
+	// Pad matrices to the nearest power of 2 for optimal divide and conquer
+	let padded_m = next_power_of_2(m);
+	let padded_n = next_power_of_2(n);
+	let padded_p = next_power_of_2(p);
+
+	let a_padded = a.pad(padded_m, padded_n);
+	let b_padded = b.pad(padded_n, padded_p);
+
+	let result_padded = divide_conquer_recursive(&a_padded, &b_padded, threshold);
+
+	// Extract the original size result
+	result_padded.submatrix(0, m, 0, p)
 }
 
 /// Internal recursive function for divide and conquer multiplication.

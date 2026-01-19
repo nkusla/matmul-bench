@@ -23,13 +23,7 @@ function main()
   # Define matrix sizes to test
   # Start small and scale up
   sizes = [
-    64,    # Small
-    128,   # Medium-small
-    256,   # Medium
-    512,   # Medium-large
-    1024,  # Large
-    2048,  # Very large
-    # 4096   # Extra large
+    64, 128, 256, 512, 1024, 2048
   ]
 
   println("Testing sizes: $sizes")
@@ -48,7 +42,7 @@ function main()
   arch = lowercase(string(Sys.ARCH))
   os = lowercase(string(Sys.KERNEL))
   nthreads = Threads.nthreads()
-  filename = "../results/julia_benchmark_$(os)_$(arch)_$(nthreads)t_$(timestamp).csv"
+  filename = "../results/data/julia_benchmark_$(os)_$(arch)_$(nthreads)t_$(timestamp).csv"
   save_results_csv(results, filename)
 
   println("\nBenchmark completed!")

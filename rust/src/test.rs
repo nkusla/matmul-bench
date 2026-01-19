@@ -48,8 +48,8 @@ fn main() {
 	println!("Running correctness tests...");
 	println!("{}", "=".repeat(50));
 
-	// Test with small matrices
-	let sizes_to_test = vec![4, 8, 16, 32, 64];
+	// Test with small matrices (including odd sizes)
+	let sizes_to_test = vec![50, 64, 100, 128, 150];
 
 	for n in sizes_to_test {
 		println!("\nTesting size: {}x{}", n, n);

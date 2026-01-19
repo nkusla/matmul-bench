@@ -10,7 +10,7 @@ println("Running correctness tests...")
 println("="^50)
 
 # Test with small matrices
-sizes_to_test = [4, 8, 16, 32, 64]
+sizes_to_test = [50, 64, 100, 128, 150]
 
 for n in sizes_to_test
   println("\nTesting size: $(n)x$(n)")
@@ -29,13 +29,13 @@ for n in sizes_to_test
   println("  ✓ Iterative: error = $(error_iterative)")
 
   # Test divide-and-conquer
-  C_dc_par = divide_conquer_matmul(A, B; threshold=4, parallel=true)
+  C_dc_par = divide_conquer_matmul(A, B; threshold=4)
   error_dc_par = norm(C_reference - C_dc_par)
   @test error_dc_par < 1e-10
   println("  ✓ Divide-Conquer: error = $(error_dc_par)")
 
   # Test Strassen
-  C_strassen = strassen_matmul(A, B; threshold=4, parallel=true)
+  C_strassen = strassen_matmul(A, B; threshold=4)
   error_strassen = norm(C_reference - C_strassen)
   @test error_strassen < 1e-10
   println("  ✓ Strassen: error = $(error_strassen)")

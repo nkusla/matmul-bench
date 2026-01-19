@@ -55,6 +55,7 @@ where
 /// Returns a vector of BenchmarkResult objects.
 pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 	let mut results = Vec::new();
+	let threshold = 32; // Threshold for switching algorithms
 
 	for &n in sizes {
 		println!("\nTesting matrix size: {}x{}", n, n);
@@ -85,7 +86,7 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 		// Benchmark divide-and-conquer (always parallel)
 		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
 			let (time_dc, memory_dc) = benchmark_algorithm(
-				|a, b| divide_conquer_matmul(a, b, 64),
+				|a, b| divide_conquer_matmul(a, b, threshold),
 				"Divide-Conquer",
 				&a,
 				&b,
@@ -108,7 +109,7 @@ pub fn run_benchmarks(sizes: &Vec<usize>) -> Vec<BenchmarkResult> {
 		// Benchmark Strassen (always parallel)
 		match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
 			let (time_strassen, memory_strassen) = benchmark_algorithm(
-				|a, b| strassen_matmul(a, b, 64),
+				|a, b| strassen_matmul(a, b, threshold),
 				"Strassen",
 				&a,
 				&b,

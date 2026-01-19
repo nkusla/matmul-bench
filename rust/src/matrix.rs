@@ -69,6 +69,23 @@ impl Matrix {
 		self
 	}
 
+	/// Pad matrix with zeros to new dimensions
+	pub fn pad(&self, new_rows: usize, new_cols: usize) -> Matrix {
+		assert!(new_rows >= self.rows, "new_rows must be >= current rows");
+		assert!(new_cols >= self.cols, "new_cols must be >= current cols");
+
+		let mut result = Matrix::new(new_rows, new_cols);
+
+		// Copy existing data
+		for i in 0..self.rows {
+			for j in 0..self.cols {
+				result[(i, j)] = self[(i, j)];
+			}
+		}
+
+		result
+	}
+
 	/// Combine four quadrant matrices into a single matrix
 	pub fn combine_quadrants(c11: &Matrix, c12: &Matrix, c21: &Matrix, c22: &Matrix) -> Matrix {
 		let rows_top = c11.rows;

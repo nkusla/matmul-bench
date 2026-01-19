@@ -3,7 +3,21 @@ using Base.Threads
 include("iterative_matmul.jl")
 
 """
-    strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64) where T
+    next_power_of_2(n::Int)
+
+Find the next power of 2 greater than or equal to n.
+"""
+function next_power_of_2(n::Int)
+  n <= 0 && return 1
+  power = 1
+  while power < n
+    power *= 2
+  end
+  return power
+end
+
+"""
+    strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=32) where T
 
 Strassen's matrix multiplication algorithm with optional parallelization.
 Recursively divides matrices into quadrants and computes 7 products instead of 8,
@@ -11,9 +25,9 @@ reducing complexity from O(n³) to O(n^2.807).
 
 Arguments:
 - A, B: Input matrices to multiply
-- threshold: Minimum size to switch to standard multiplication (default: 64)
+- threshold: Minimum size to switch to standard multiplication (default: 32)
 """
-function strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=64) where T
+function strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::Int=32) where T
   m, n = size(A)
   q, p = size(B)
 
@@ -25,7 +39,28 @@ function strassen_matmul(A::AbstractMatrix{T}, B::AbstractMatrix{T}; threshold::
     throw(ArgumentError("strassen_matmul requires multiple threads to run"))
   end
 
-  return _strassen_recursive(A, B, threshold)
+  # Pad matrices to the nearest power of 2 for optimal Strassen algorithm
+  padded_m = next_power_of_2(m)
+  padded_n = next_power_of_2(n)
+  padded_p = next_power_of_2(p)
+
+  # Pad if necessary
+  if m != padded_m || n != padded_n
+    A_padded = zeros(T, padded_m, padded_n)
+    A_padded[1:m, 1:n] = A
+    A = A_padded
+  end
+
+  if n != padded_n || p != padded_p
+    B_padded = zeros(T, padded_n, padded_p)
+    B_padded[1:q, 1:p] = B
+    B = B_padded
+  end
+
+  result = _strassen_recursive(A, B, threshold)
+
+  # Extract the original size result
+  return result[1:m, 1:p]
 end
 
 """
@@ -42,29 +77,7 @@ function _strassen_recursive(A::AbstractMatrix{T}, B::AbstractMatrix{T}, thresho
     return iterative_matmul(A, B)
   end
 
-  # Pad matrices to even dimensions if necessary
-  m_even = m + (m % 2)
-  n_even = n + (n % 2)
-  p_even = p + (p % 2)
-
-  # Pad if necessary
-  if m != m_even || n != n_even
-    A_padded = zeros(T, m_even, n_even)
-    A_padded[1:m, 1:n] = A
-    A = A_padded
-  end
-
-  if n != n_even || p != p_even
-    B_padded = zeros(T, n_even, p_even)
-    B_padded[1:n, 1:p] = B
-    B = B_padded
-  end
-
-  # Update dimensions after padding
-  m, n = m_even, n_even
-  p = p_even
-
-  # Calculate split points
+  # Calculate split points (matrices are already padded to power of 2)
   m_half = m ÷ 2
   n_half = n ÷ 2
   p_half = p ÷ 2
